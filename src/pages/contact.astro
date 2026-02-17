@@ -1,0 +1,33 @@
+++---
+import Layout from "../layouts/Layout.astro";
+import Container from "../components/shared/Container.astro";
+import BtnLink from "../components/shared/BtnLink.astro";
+
+---
+
+<Layout title="Contact">
+  <main class="py-32">
+    <Container>
+      <div class="max-w-3xl">
+        <h1 class="text-4xl font-bold text-heading-1 mb-6">
+          Ready to ignite your social presence?
+        </h1>
+        <p class="text-lg text-heading-2 mb-8">
+          Tell us about your goals and we'll craft a focused plan to grow your
+          audience, engagement, and revenue. We're excited to learn about your
+          project and share how we can help.
+        </p>
+
+        <div class="flex gap-4 items-center">
+          <BtnLink
+            href="mailto:hello@yourcompany.com"
+            text="Contact Us"
+            variant="primary"
+            className=""
+          />
+          <a class="text-heading-2" href="tel:+1234567890">Or call us: +1 (234) 567-890</a>
+        </div>
+      </div>
+    </Container>
+  </main>
+</Layout>
