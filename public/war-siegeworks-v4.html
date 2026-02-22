@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>War — Siegeworks Marketing</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=EB+Garamond:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0a0a0a;
+    --surface:  #111111;
+    --surface2: #1a1a1a;
+    --crimson:  #8b1a1a;
+    --crimson2: #b02020;
+    --crimson3: #d43030;
+    --ivory:    #f0ece2;
+    --muted:    #6b6b6b;
+    --red:      #c0392b;
+    --radius:   8px;
+    /* Card sized relative to container height so nothing ever overflows */
+    --card-w: min(110px, 22vh);
+    --card-h: calc(var(--card-w) * 1.45);
+  }
+
+  /* Fill the iframe/window exactly — no scroll ever */
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'EB Garamond', Georgia, serif;
+    background: var(--bg);
+    color: var(--ivory);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Subtle grid texture */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(139,26,26,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,26,26,.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+  /* Border frame */
+  body::after {
+    content: '';
+    position: fixed; inset: 5px; z-index: 0;
+    border: 1px solid rgba(139,26,26,.28);
+    pointer-events: none;
+  }
+
+  /* ── App shell: vertical flex, fills height exactly ── */
+  #app {
+    position: relative; z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 16px 12px;
+    gap: 8px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  header {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+  .logo-img {
+    height: clamp(44px, 10vh, 72px);
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 10px rgba(139,26,26,.4));
+  }
+  .game-subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(.52rem, 1.6vh, .76rem);
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--crimson2);
+  }
+
+  /* ── Divider ── */
+  .h-rule {
+    width: 100%;
+    border: none;
+    border-top: 1px solid rgba(139,26,26,.3);
+    flex-shrink: 0;
+  }
+
+  /* ── Score bar ── */
+  .score-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid rgba(139,26,26,.35);
+    border-radius: 4px;
+    padding: 5px 20px;
+    flex-shrink: 0;
+  }
+  .score-side { text-align: center; flex: 1; }
+  .score-label { font-size: clamp(.56rem, 1.4vh, .65rem); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .score-num {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.2rem, 3.2vh, 1.65rem);
+    color: var(--ivory);
+    line-height: 1.1;
+  }
+  .score-num.bump { animation: bump .25s ease; }
+  @keyframes bump { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+  .score-divider { color: var(--crimson2); font-size: 1rem; font-family: 'Cinzel', serif; }
+
+  /* ── Arena: the main horizontal battle row ── */
+  .arena {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    flex: 1;          /* takes all remaining height between score bar and button */
+    min-height: 0;    /* lets flex shrink below content size */
+  }
+
+  /* Each player column: label on top, card below */
+  .player-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .zone-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .zone-name {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(.6rem, 1.5vh, .75rem);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .zone-count {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1rem, 2.4vh, 1.3rem);
+    color: var(--ivory);
+    line-height: 1;
+  }
+  .zone-count-label {
+    font-size: clamp(.5rem, 1.2vh, .6rem);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── Card ── */
+  .card {
+    width: var(--card-w);
+    height: var(--card-h);
+    border-radius: var(--radius);
+    position: relative;
+    flex-shrink: 0;
+    perspective: 900px;
+  }
+  .card-inner {
+    width: 100%; height: 100%;
+    border-radius: var(--radius);
+    transition: transform .44s cubic-bezier(.4,0,.2,1);
+    transform-style: preserve-3d;
+    transform: rotateY(0deg);
+  }
+  .card.face-up .card-inner { transform: rotateY(180deg); }
+
+  .card-face, .card-back {
+    position: absolute; inset: 0;
+    border-radius: var(--radius);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Card back — dark with castle watermark */
+  .card-back {
+    background: var(--surface2);
+    border: 1.5px solid var(--crimson);
+    overflow: hidden;
+  }
+  .card-back::before {
+    content: '';
+    position: absolute; inset: 5px;
+    border: 1px solid rgba(139,26,26,.35);
+    border-radius: 4px;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(255,255,255,.022) 10px, rgba(255,255,255,.022) 11px),
+      repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(255,255,255,.012) 15px, rgba(255,255,255,.012) 16px);
+  }
+  .card-back::after {
+    content: '🏰';
+    font-size: 1.5rem;
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    opacity: .13;
+    filter: grayscale(1);
+  }
+
+  /* Card face — ivory with rank + suit */
+  .card-face {
+    background: var(--ivory);
+    border: 1.5px solid rgba(139,26,26,.45);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+    transform: rotateY(180deg);
+  }
+  .card-face.red .rank-top,
+  .card-face.red .rank-bot,
+  .card-face.red .suit-center { color: var(--red); }
+  .card-face.black .rank-top,
+  .card-face.black .rank-bot,
+  .card-face.black .suit-center { color: #1a1a1a; }
+
+  .rank-top, .rank-bot {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(.72rem, 1.8vh, 1rem);
+    line-height: 1;
+    display: flex; flex-direction: column; align-items: flex-start;
+  }
+  .rank-bot { align-items: flex-end; transform: rotate(180deg); }
+  .suit-small { font-size: clamp(.52rem, 1.3vh, .7rem); line-height: 1; }
+  .suit-center {
+    text-align: center;
+    font-size: clamp(1.4rem, 4vh, 2.2rem);
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+  }
+
+  /* ── Center column: result text + war dots ── */
+  .center-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .result-text {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(.68rem, 1.8vh, .95rem);
+    letter-spacing: .04em;
+    padding: 6px 10px;
+    border-radius: 3px;
+    text-align: center;
+  }
+  .result-text.hidden { display: none; }
+  .result-text.win  { color: var(--ivory); background: rgba(139,26,26,.25); border: 1px solid rgba(139,26,26,.5); }
+  .result-text.lose { color: var(--muted); background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.07); }
+  .result-text.war  { color: var(--crimson3); background: rgba(139,26,26,.15); border: 1px solid var(--crimson); animation: warPulse .55s ease infinite alternate; }
+  .result-text.draw { color: var(--muted); }
+  @keyframes warPulse { from{opacity:.65} to{opacity:1} }
+
+  .war-pile { display: flex; gap: 4px; align-items: center; justify-content: center; flex-wrap: wrap; max-width: 80px; }
+  .war-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--crimson2);
+    animation: dotIn .18s ease both;
+    flex-shrink: 0;
+  }
+  @keyframes dotIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+
+  /* Crossed-swords idle state */
+  .swords-idle {
+    font-size: clamp(1.2rem, 4vh, 2rem);
+    opacity: .18;
+    user-select: none;
+  }
+
+  /* ── Draw button ── */
+  .btn-deal {
+    width: 100%;
+    max-width: 260px;
+    padding: clamp(9px, 2vh, 13px) 24px;
+    background: var(--crimson);
+    color: var(--ivory);
+    border: 1px solid var(--crimson2);
+    border-radius: 3px;
+    font-family: 'Cinzel', serif;
+    font-size: clamp(.8rem, 2vh, 1rem);
+    letter-spacing: .1em;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 2px 18px rgba(139,26,26,.35), inset 0 1px 0 rgba(255,255,255,.08);
+    transition: transform .15s, box-shadow .15s, background .15s;
+    -webkit-user-select: none; user-select: none;
+    flex-shrink: 0;
+  }
+  .btn-deal:hover  { background: var(--crimson2); box-shadow: 0 4px 24px rgba(139,26,26,.5); }
+  .btn-deal:active { transform: scale(.97); }
+  .btn-deal:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+
+  /* ── Game Over overlay ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(5,5,5,.93);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(6px);
+    animation: fadeIn .35s ease;
+  }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .overlay.hidden { display: none; }
+  .overlay-card {
+    text-align: center;
+    padding: 32px 28px;
+    border: 1px solid var(--crimson);
+    border-radius: 4px;
+    background: var(--surface);
+    max-width: 290px;
+    width: 90%;
+  }
+  .overlay-icon  { font-size: 2.4rem; margin-bottom: 10px; }
+  .overlay-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    letter-spacing: .12em;
+    color: var(--ivory);
+  }
+  .overlay-divider {
+    width: 60px; height: 1px;
+    background: var(--crimson);
+    margin: 14px auto;
+  }
+  .overlay-sub {
+    font-size: .9rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <header>
+    <img class="logo-img" src="https://static.wixstatic.com/media/5e2249_6bf6a20e8e0342719a4fbc36eb9d5b13~mv2.png" alt="Siegeworks Marketing" onerror="this.style.display='none'">
+    <div class="game-subtitle">The Card Game of War</div>
+  </header>
+
+  <hr class="h-rule">
+
+  <div class="score-bar">
+    <div class="score-side">
+      <div class="score-label">Your Cards</div>
+      <div class="score-num" id="playerCount">26</div>
+    </div>
+    <div class="score-divider">⚔</div>
+    <div class="score-side">
+      <div class="score-label">CPU Cards</div>
+      <div class="score-num" id="cpuCount">26</div>
+    </div>
+  </div>
+
+  <!-- ── Arena: two cards side by side with result in the middle ── -->
+  <div class="arena">
+
+    <!-- Player card (left) -->
+    <div class="player-col">
+      <div class="zone-info">
+        <div class="zone-name">You</div>
+        <div class="zone-count" id="playerRemaining">26</div>
+        <div class="zone-count-label">cards</div>
+      </div>
+      <div class="card" id="playerCard">
+        <div class="card-inner">
+          <div class="card-back"></div>
+          <div class="card-face" id="playerFace"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: result text + war dots -->
+    <div class="center-col">
+      <div class="swords-idle" id="swordsIdle">⚔️</div>
+      <div class="result-text hidden" id="resultText"></div>
+      <div class="war-pile" id="warPile"></div>
+    </div>
+
+    <!-- CPU card (right) -->
+    <div class="player-col">
+      <div class="zone-info">
+        <div class="zone-name">CPU</div>
+        <div class="zone-count" id="cpuRemaining">26</div>
+        <div class="zone-count-label">cards</div>
+      </div>
+      <div class="card" id="cpuCard">
+        <div class="card-inner">
+          <div class="card-back"></div>
+          <div class="card-face" id="cpuFace"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="btn-deal" id="dealBtn">Draw Cards</button>
+
+</div>
+
+<!-- Game Over overlay -->
+<div class="overlay hidden" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-icon" id="overlayIcon">⚔️</div>
+    <div class="overlay-title" id="overlayTitle">Victory</div>
+    <div class="overlay-divider"></div>
+    <div class="overlay-sub" id="overlaySub"></div>
+    <button class="btn-deal" id="restartBtn">Play Again</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const RANKS   = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+  const SUITS   = ['♠','♣','♥','♦'];
+  const RED     = new Set(['♥','♦']);
+  const FLIP_MS = 440; // must match CSS transition duration
+
+  let playerDeck, cpuDeck, warPot, isAnimating, rounds;
+
+  const $ = id => document.getElementById(id);
+  const playerCountEl   = $('playerCount');
+  const cpuCountEl      = $('cpuCount');
+  const playerRemaining = $('playerRemaining');
+  const cpuRemaining    = $('cpuRemaining');
+  const playerCardEl    = $('playerCard');
+  const cpuCardEl       = $('cpuCard');
+  const playerFaceEl    = $('playerFace');
+  const cpuFaceEl       = $('cpuFace');
+  const resultTextEl    = $('resultText');
+  const swordsIdle      = $('swordsIdle');
+  const warPileEl       = $('warPile');
+  const dealBtn         = $('dealBtn');
+  const overlay         = $('overlay');
+  const overlayIcon     = $('overlayIcon');
+  const overlayTitle    = $('overlayTitle');
+  const overlaySub      = $('overlaySub');
+  const restartBtn      = $('restartBtn');
+
+  // ── Helpers ──────────────────────────────────────────────────
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.random() * (i + 1) | 0;
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+  }
+
+  function buildDeck() {
+    const d = [];
+    SUITS.forEach(s => RANKS.forEach((r, i) => d.push({ rank: r, suit: s, value: i })));
+    return d;
+  }
+
+  function renderCard(faceEl, card) {
+    faceEl.className = 'card-face ' + (RED.has(card.suit) ? 'red' : 'black');
+    faceEl.innerHTML =
+      '<div class="rank-top">' + card.rank + '<span class="suit-small">' + card.suit + '</span></div>' +
+      '<div class="suit-center">' + card.suit + '</div>' +
+      '<div class="rank-bot">' + card.rank + '<span class="suit-small">' + card.suit + '</span></div>';
+  }
+
+  function updateCounts() {
+    const p = playerDeck.length, c = cpuDeck.length;
+    playerCountEl.textContent   = p;
+    cpuCountEl.textContent      = c;
+    playerRemaining.textContent = p;
+    cpuRemaining.textContent    = c;
+  }
+
+  function setResult(msg, type) {
+    swordsIdle.style.display = 'none';
+    resultTextEl.className   = 'result-text ' + type;
+    resultTextEl.textContent = msg;
+  }
+
+  function hideResult() {
+    resultTextEl.className   = 'result-text hidden';
+    swordsIdle.style.display = '';
+    warPileEl.innerHTML      = '';
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+
+  function initGame() {
+    const deck = buildDeck();
+    shuffle(deck);
+    playerDeck  = deck.slice(0, 26);
+    cpuDeck     = deck.slice(26);
+    warPot      = [];
+    isAnimating = false;
+    rounds      = 0;
+    playerCardEl.classList.remove('face-up');
+    cpuCardEl.classList.remove('face-up');
+    hideResult();
+    overlay.classList.add('hidden');
+    dealBtn.disabled    = false;
+    dealBtn.textContent = 'Draw Cards';
+    updateCounts();
+  }
+
+  // ── Game over ─────────────────────────────────────────────────
+
+  function gameOver(won) {
+    overlay.classList.remove('hidden');
+    overlayIcon.textContent  = won ? '🏆' : '💀';
+    overlayTitle.textContent = won ? 'Victory' : 'Defeated';
+    overlaySub.textContent   = won
+      ? 'You captured all 52 cards after ' + rounds + ' rounds.'
+      : 'The CPU claimed all the cards after ' + rounds + ' rounds.';
+  }
+
+  // ── War resolution ────────────────────────────────────────────
+
+  async function resolveWar() {
+    setResult('⚔️  War!', 'war');
+    const wager = Math.min(3, playerDeck.length, cpuDeck.length);
+    for (let i = 0; i < wager; i++) {
+      warPot.push(playerDeck.shift(), cpuDeck.shift());
+      const dot = document.createElement('div');
+      dot.className = 'war-dot';
+      warPileEl.appendChild(dot);
+      await sleep(150);
+    }
+    if (!playerDeck.length || !cpuDeck.length) {
+      (playerDeck.length ? playerDeck : cpuDeck).push(...warPot);
+      warPot = [];
+      updateCounts();
+    }
+  }
+
+  // ── Main deal ─────────────────────────────────────────────────
+  //
+  // Sequence every click:
+  //   Round 1: backs already showing → render faces → flip to face-up
+  //   Round 2+: faces showing → flip to backs (sleep FLIP_MS+80) →
+  //             render new faces while backs are guaranteed showing →
+  //             flip to face-up (sleep FLIP_MS+80) → show result →
+  //             enforce 2-second minimum display → re-enable button
+
+  async function deal() {
+    if (isAnimating) return;
+    isAnimating      = true;
+    dealBtn.disabled = true;
+
+    const isFaceUp = playerCardEl.classList.contains('face-up');
+
+    if (isFaceUp) {
+      // Flip both to backs.
+      // sleep() instead of transitionend: transitionend bubbles from any
+      // descendant, so it can fire early and expose the new card face while
+      // the card is still mid-rotation. sleep(FLIP_MS + 80) is unconditional
+      // and guarantees both the animation AND compositor settle fully.
+      playerCardEl.classList.remove('face-up');
+      cpuCardEl.classList.remove('face-up');
+      await sleep(FLIP_MS + 80);
+      hideResult();
+    }
+
+    // Backs are fully showing — safe to paint new content onto hidden faces.
+    rounds++;
+    const pCard = playerDeck.shift();
+    const cCard = cpuDeck.shift();
+    renderCard(playerFaceEl, pCard);
+    renderCard(cpuFaceEl, cCard);
+
+    // rAF: let the browser commit new face DOM before triggering the transition.
+    await new Promise(r => requestAnimationFrame(r));
+
+    // Flip both to faces, then wait for full animation + compositor settle.
+    playerCardEl.classList.add('face-up');
+    cpuCardEl.classList.add('face-up');
+    await sleep(FLIP_MS + 80);
+
+    // Faces are fully, stably visible. Start 2-second display clock.
+    const revealedAt = Date.now();
+
+    // Resolve round outcome.
+    if (pCard.value > cCard.value) {
+      playerDeck.push(...warPot, pCard, cCard);
+      warPot = [];
+      updateCounts();
+      setResult('You win this round ✦', 'win');
+      playerCountEl.classList.remove('bump');
+      void playerCountEl.offsetWidth;
+      playerCountEl.classList.add('bump');
+    } else if (cCard.value > pCard.value) {
+      cpuDeck.push(...warPot, pCard, cCard);
+      warPot = [];
+      updateCounts();
+      setResult('CPU wins this round', 'lose');
+      cpuCountEl.classList.remove('bump');
+      void cpuCountEl.offsetWidth;
+      cpuCountEl.classList.add('bump');
+    } else {
+      warPot.push(pCard, cCard);
+      updateCounts();
+      await resolveWar();
+    }
+
+    // Game over check.
+    if (!playerDeck.length) { await sleep(900); gameOver(false); isAnimating = false; return; }
+    if (!cpuDeck.length)    { await sleep(900); gameOver(true);  isAnimating = false; return; }
+
+    // Enforce 2-second face-up minimum. Time already spent in resolveWar()
+    // counts toward it — no stacking of extra delays.
+    const elapsed = Date.now() - revealedAt;
+    if (elapsed < 2000) await sleep(2000 - elapsed);
+
+    // Done. Cards stay face-up. Button re-enables only after full display window.
+    isAnimating      = false;
+    dealBtn.disabled = false;
+  }
+
+  dealBtn.addEventListener('click', deal);
+  restartBtn.addEventListener('click', initGame);
+  document.addEventListener('keydown', e => {
+    if ((e.key === ' ' || e.key === 'Enter') && !dealBtn.disabled) { e.preventDefault(); deal(); }
+  });
+
+  initGame();
+})();
+</script>
+</body>
+</html>
