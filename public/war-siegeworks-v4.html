@@ -629,10 +629,7 @@
     if (!playerDeck.length) { await sleep(900); gameOver(false); isAnimating = false; return; }
     if (!cpuDeck.length)    { await sleep(900); gameOver(true);  isAnimating = false; return; }
 
-    // Enforce 2-second face-up minimum. Time already spent in resolveWar()
-    // counts toward it — no stacking of extra delays.
-    const elapsed = Date.now() - revealedAt;
-    if (elapsed < 500) await sleep(500 - elapsed);
+
 
     // Done. Cards stay face-up. Button re-enables only after full display window.
     isAnimating      = false;
