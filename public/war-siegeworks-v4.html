@@ -632,7 +632,7 @@
     // Enforce 2-second face-up minimum. Time already spent in resolveWar()
     // counts toward it — no stacking of extra delays.
     const elapsed = Date.now() - revealedAt;
-    if (elapsed < 2000) await sleep(2000 - elapsed);
+    if (elapsed < 500) await sleep(500 - elapsed);
 
     // Done. Cards stay face-up. Button re-enables only after full display window.
     isAnimating      = false;
