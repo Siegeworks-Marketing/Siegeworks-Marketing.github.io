@@ -61,23 +61,23 @@ const services = [
 
 const solutions = [
   {
-    title: "Visibility Dilemma",
+    title: "Ever Felt Like You're Posting & Nobody's Noticing?",
     painPoint:
-      "Your brand is drowning in the vast sea of social media, struggling to be seen by your target audience.",
+      "It's doesn't necessarily mean that your content is bad. Realize that algorithms don't owe anyone attention: they rewards strategy.",
     agitatepainPoint:
-      "It's disheartening when your carefully crafted content goes unnoticed. Your potential customers are out there, but they simply can't find you amidst the digital noise.",
+      "Most businesses post consistently and hope something lands. That's not a plan, that's a lottery ticket. The brands that cut through usually aren't louder, they're smarter about where they show up, when, and for whom.",
     solution:
-      "Our targeted visibility strategies cut through the clutter, ensuring your brand is not just seen but remembered. Watch our video to see how we make your presence impossible to ignore.",
+      "Let's work together to map exactly where your ideal customers are paying attention, and build a presence they can't scroll past!",
     img: visibilityDilemma,
   },
   {
-    title: "Engagement Gap",
+    title: "Likes Don't Pay the Bills. Relationships Do.",
     painPoint:
-      "Despite your efforts, audience engagement remains lackluster, and interactions are not translating into meaningful connections.",
+      "A comment here, a share there... it feels like traction until you realize none of it is turning into actual business.",
     agitatepainPoint:
-      "It's frustrating to see competitors effortlessly engaging their audience while your brand struggles to spark conversations. Your content deserves better results, and we have the solution.",
+      "Real engagement isn't a metric. It's someone tagging a friend saying 'you need to see this.' It's a stranger DMing you because your post described their exact problem. That kind of response doesn't happen by accident.",
     solution:
-      "Our proven engagement tactics ignite conversations, turning passive viewers into active participants. Explore how we bridge the engagement gap in our video walkthrough.",
+      "I help build content that starts conversations worth having, because the best marketing never feels like marketing at all.",
     img: engagementGap,
   },
   {
