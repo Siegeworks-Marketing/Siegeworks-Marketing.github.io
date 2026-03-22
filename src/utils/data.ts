@@ -81,13 +81,13 @@ const solutions = [
     img: engagementGap,
   },
   {
-    title: "Results in Hibernation",
+    title: "Marketing Should Never Feel Like a Mystery.",
     painPoint:
-      "Your social media efforts aren't translating into tangible results, leaving you wondering if your investment is paying off.",
+      "If you've ever stared at a report wondering what any of it actually means for your business, that's a system problem, not a you problem.",
     agitatepainPoint:
-      "It's disheartening when the metrics show little growth or impact. Your time and resources are valuable, and it's time to break free from the cycle of stagnant results.",
+      "Good strategy comes with clear answers baked in: what's working, what isn't, and what changes next.",
     solution:
-      "Our data-driven approach ensures every action is purposeful, yielding measurable results. Dive into our video guide to witness how we turn social media activities into a powerful engine for your brand's success.",
+      "No vanity metrics. No dashboards that look impressive but don't connect to revenue. Just a straightforward picture of where your investment is going, and what it's returning.",
     img: resultsInHibernation,
   },
 ];
